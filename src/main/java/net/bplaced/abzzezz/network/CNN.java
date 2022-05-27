@@ -19,7 +19,6 @@ public class CNN {
 
     }
 
-
     public TrainData getRandomTrainingData() throws IOException {
         final File dogImages = new File("Images");
         final File otherImages = new File("OtherImages");
@@ -39,7 +38,6 @@ public class CNN {
         final int rnd = ThreadLocalRandom.current().nextInt(dir.listFiles().length);
         return Objects.requireNonNull(dir.listFiles())[rnd];
     }
-
 
     public static Matrix @NotNull [] initFilters(final int filters, final int matrixSize) {
         final Matrix[] matrices = new Matrix[filters];
