@@ -21,7 +21,7 @@ public class ConvolutionLayer {
         Note that the stride is equal to one
          */
         final int p = (kernel.getRows() - 1) / 2;
-        final Matrix paddedInput = input.padMatrix(p);
+        final Matrix paddedInput = input.pad(p);
 
         final int rowLength = (input.getRows() + (2 * p) - kernel.getRows() + 1);
         final int columnLength = (input.getCols() + (2 * p) - kernel.getCols() + 1);
@@ -34,7 +34,7 @@ public class ConvolutionLayer {
                 final Matrix subMatrix = paddedInput.subMatrix(i, j, kernel.getRows(), kernel.getCols());
                 final double res = subMatrix.sumAndMultiply(kernel);
 
-                resultMatrix.setDataAtPos(i, j, res);
+                resultMatrix.set(i, j, res);
             }
         }
         return resultMatrix;
@@ -46,7 +46,7 @@ public class ConvolutionLayer {
         //  return Arrays.stream(kernels).map(matrix -> convolve(input, matrix)).toArray(Matrix[]::new);
         final Matrix[] matrices = new Matrix[kernels.length];
         for (int i = 0; i < kernels.length; i++) {
-            matrices[i] = convolve(input, kernels[i]);
+            matrices[i] = convolve(input, kernels[i]).relu();
         }
         return matrices;
     }

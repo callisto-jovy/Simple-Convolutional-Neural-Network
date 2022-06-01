@@ -1,8 +1,9 @@
 package net.bplaced.abzzezz.util.matrix;
 
+import net.bplaced.abzzezz.util.Util;
 import net.bplaced.abzzezz.util.vector.Vec;
 
-import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -31,11 +32,21 @@ public class Matrix {
         this.randomize();
     }
 
+    public Matrix(final int rows, final int cols, final double value) {
+        this.rows = rows;
+        this.cols = cols;
+        this.data = new double[rows][cols];
+        this.fill(value);
+    }
+
     /**
      * Each element is assigned a random value between 0 and 1
      */
     public void randomize() {
         this.applyToElement(value -> Math.random());
+    }
+    public void randomizeInteger() {
+        this.applyToElement(value -> (double) ThreadLocalRandom.current().nextInt(5));
     }
 
     /**
@@ -43,6 +54,14 @@ public class Matrix {
      */
     public void fillZeros() {
         this.applyToElement(value -> 0.);
+    }
+
+    /**
+     * Fills the matrix with a supplied value
+     * @param value the value to fill the matrix with
+     */
+    public void fill(double value) {
+        this.applyToElement((integer, integer2) -> value);
     }
 
     /**
@@ -68,27 +87,38 @@ public class Matrix {
         this.applyToElement((row, col) -> data[row][col] + matrix.getDataAtPos(row, col));
     }
 
-    public Matrix padMatrix(final int paddingSize) {
+    /**
+     * Creates a padded matrix from the current matrix with a specified padding size
+     * Example: A 2*2 Matrix filled with the value 1
+     * Old:
+     * [1, 1, 1]
+     * [1, 1, 1]
+     * New surrounded by zeros:
+     * [0, 0, 0, 0, 0]
+     * [0, 1, 1, 1, 0]
+     * [0, 1, 1, 1, 0]
+     * [0, 0, 0, 0, 0]
+     *
+     * @param paddingSize the amount of padding applied around the matrix's values
+     * @return a new matrix with the current matrix's padded
+     */
+    public Matrix pad(final int paddingSize) {
         final Matrix matrix = new Matrix(getRows() + (paddingSize * 2), getCols() + (paddingSize * 2));
-        /*
-         * Old:
-         * [1, 1, 1]
-         * [1, 1, 1]
-         * New:
-         * [0, 0, 0, 0, 0]
-         * [0, 1, 1, 1, 0]
-         * [0, 1, 1, 1, 0]
-         * [0, 0, 0, 0, 0]
-         */
         //Fill the new matrix with zeros
         matrix.fillZeros();
+        //Transfer the current matrix's values into the new matrix, which are then surrounded by padding,
+        //See the example above
         for (int i = 0; i < getRows(); i++) {
             for (int j = 0; j < getCols(); j++) {
                 final double data = getDataAtPos(i, j);
-                matrix.setDataAtPos(i + paddingSize, j + paddingSize, data);
+                matrix.set(i + paddingSize, j + paddingSize, data);
             }
         }
         return matrix;
+    }
+
+    public Matrix subtract(final Matrix matrix) {
+        return MatrixUtil.subtractMatrices(this, matrix);
     }
 
     /**
@@ -102,7 +132,7 @@ public class Matrix {
      * @return the matrix's max value
      */
     public double maxValue() {
-        double max = data[0][0];
+        double max = Double.MIN_VALUE;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 max = Math.max(max, getDataAtPos(i, j));
@@ -125,7 +155,7 @@ public class Matrix {
      *
      * @param multiplier static multiplier for each element
      */
-    public void multiply(final int multiplier) {
+    public void multiply(final double multiplier) {
         this.applyToElement(value -> value * multiplier);
     }
 
@@ -138,7 +168,21 @@ public class Matrix {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 final double value = getDataAtPos(i, j) * (1 - getDataAtPos(i, j));
-                temp.setDataAtPos(i, j, value);
+                temp.set(i, j, value);
+            }
+        }
+        return temp;
+    }
+
+    /**
+     * @return the matrix's min value
+     */
+    public Matrix relu() {
+        final Matrix temp = new Matrix(rows, cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                final double value = Util.relu(getDataAtPos(i, j));
+                temp.set(i, j, value);
             }
         }
         return temp;
@@ -162,6 +206,7 @@ public class Matrix {
 
     /**
      * Returns the sum of two matrices multiplied element-wise
+     *
      * @param matrix another matrix, the same size as the current matrix
      * @return the sum of one matrix's elements multiplied by the other matrices element-wise
      */
@@ -182,9 +227,10 @@ public class Matrix {
 
     /**
      * Creates a sub-matrix from the given starting positions with a new height and width
-     * @param row row to start at
-     * @param col column to start at
-     * @param width the new matrix's width, i.e. the new matrix's rows
+     *
+     * @param row    row to start at
+     * @param col    column to start at
+     * @param width  the new matrix's width, i.e. the new matrix's rows
      * @param height the new matrix's height, i.e. the nw matrix's columns
      * @return a sub-matrix constructed from the current matrix or null if the requested sub-matrix's bounds
      * exceed the current matrix's boundaries
@@ -199,18 +245,19 @@ public class Matrix {
         for (int i = row, i1 = 0; i < row + width; i++, i1++) {
             for (int j = col, j1 = 0; j < col + height; j++, j1++) {
                 final double data = getDataAtPos(i, j);
-                temp.setDataAtPos(i1, j1, data);
+                temp.set(i1, j1, data);
             }
         }
         return temp;
     }
+
     /**
      * Pretty prints the matrix
      */
     public void print() {
-        for (int i = 0; i < getCols(); i++) {
-            for (int j = 0; j < getRows(); j++) {
-                System.out.printf("%,.7g", getDataAtPos(j, i));
+        for (int i = 0; i < getRows(); i++) {
+            for (int j = 0; j < getCols(); j++) {
+                System.out.printf("%f\t", data[i][j]);
             }
             System.out.println();
         }
@@ -227,7 +274,16 @@ public class Matrix {
             for (int j = 0; j < cols; j++) {
                 final double value = data[i][j];
                 final int index = i * rows + j;
-                vec.setDataAtPos(index, value);
+            /*
+                System.out.println("index = " + index);
+                System.out.println("i = " + i);
+                System.out.println("rows = " + rows);
+                System.out.println("j = " + j);
+                System.out.println("cols = " + cols);
+
+             */
+
+                vec.set(index, value);
             }
         }
         return vec;
@@ -236,7 +292,8 @@ public class Matrix {
     /**
      * Applies a given function to each element
      *
-     * @param function Function which takes in a double (the value at the position) and returns a new double which in turn is the elements new value at the particular position
+     * @param function Function which takes in a double (the value at the position)
+     *                 and returns a new double which in turn is the elements new value at the particular position
      */
     private void applyToElement(final Function<Double, Double> function) {
         for (int i = 0; i < rows; i++) {
@@ -254,7 +311,7 @@ public class Matrix {
         }
     }
 
-    public void setDataAtPos(final int row, final int col, final double data) {
+    public void set(final int row, final int col, final double data) {
         this.data[row][col] = data;
     }
 

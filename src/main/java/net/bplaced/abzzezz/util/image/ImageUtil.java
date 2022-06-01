@@ -30,7 +30,7 @@ public class ImageUtil {
         for (int i = 0; i < matrix.getRows(); i++) {
             for (int j = 0; j < matrix.getCols(); j++) {
                 final double value = br.getRGB(i, j);
-                matrix.setDataAtPos(i, j, value);
+                matrix.set(i, j, value);
             }
         }
         return matrix;
@@ -54,7 +54,7 @@ public class ImageUtil {
         for (int i = 0; i < matrix.getRows(); i++) {
             for (int j = 0; j < matrix.getCols(); j++) {
                 final double value = (br.getRGB(i, j) >> 16 & 0xff) / 255.; //Normalize to a value between 0-1
-                matrix.setDataAtPos(i, j, value);
+                matrix.set(i, j, value);
             }
         }
         return matrix;

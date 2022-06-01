@@ -1,7 +1,7 @@
 package net.bplaced.abzzezz;
 
 import net.bplaced.abzzezz.network.CNN;
-import net.bplaced.abzzezz.network.components.ConvolutionLayer;
+import net.bplaced.abzzezz.network.components.PoolingLayer;
 import net.bplaced.abzzezz.util.image.ImageUtil;
 import net.bplaced.abzzezz.util.matrix.Matrix;
 
@@ -10,21 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class Main {
+
+
     public static void main(final String[] args) throws IOException {
-        //CNN.CONVOLUTIONAL_NEURAL_NETWORK.train(1000);
-
-//        final Matrix[] filters = CNN.initFilters(10);
-
-        //   ConvolutionLayer.convolve(CNN.CONVOLUTIONAL_NEURAL_NETWORK.getRandomTrainingData().getInput(), filters[0]).print();
-
-        /*
-        final File imageFolder = new File("Images");
-        final File image = imageFolder.listFiles()[0].listFiles()[0];
-
-        final Matrix matrix = ImageUtil.getNormalizedMatrixFromImage(image, 128, 128);
-        matrix.print();
-
-         */
+        CNN.CONVOLUTIONAL_NEURAL_NETWORK.train(1);
     }
 
     public static void convertImages() throws IOException {

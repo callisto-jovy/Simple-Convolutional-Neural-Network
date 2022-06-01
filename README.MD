@@ -25,3 +25,4 @@ plane.
 [Cat image dataset](https://www.kaggle.com/datasets/crawford/cat-dataset)  
 [Javapoint tutorial on CNNs](https://www.javatpoint.com/pytorch-convolutional-neural-network)  
 [Convolutional Neural Networks for Visual Recognition](https://cs231n.github.io/convolutional-networks/)  
+[Github Java Guide to CNNS](https://github.com/evarae/CNN_Tutorial)  
