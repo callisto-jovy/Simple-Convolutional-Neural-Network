@@ -22,8 +22,8 @@ public class PoolingLayer {
         final int columnLength = (input.getCols() - p) / s + 1;
         final Matrix matrix = new Matrix(rowLength, columnLength);
 
-        for (int i = 0; i + p <= input.getRows(); i += s) {
-            for (int j = 0; j + p <= input.getCols(); j += s) {
+        for (int i = 0; i + p < input.getRows(); i += s) {
+            for (int j = 0; j + p < input.getCols(); j += s) {
                 final Matrix subMatrix = input.subMatrix(i, j, p, p);
 
                 matrix.set((i - p) / 2 + 1, (j - p) / 2 + 1, subMatrix.maxValue());

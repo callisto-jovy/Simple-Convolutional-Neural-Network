@@ -77,7 +77,7 @@ public class Vec {
             System.err.println("Vector length mismatch. Cannot add vectors.");
             return;
         }
-        this.applyToElement((index, value) -> value + vector.getValue(index));
+        this.applyToElement((index, value) -> value + vector.get(index));
     }
 
     /**
@@ -87,10 +87,6 @@ public class Vec {
      * @param vector the vector to copy the values from
      */
     public void copyFromVector(final Vec vector) {
-        if (vector.length() != length()) {
-            System.err.println("Vector length mismatch. Cannot copy vector.");
-            return;
-        }
         System.arraycopy(vector.data, 0, data, 0, vector.length());
     }
 
@@ -104,6 +100,15 @@ public class Vec {
         this.applyToElement(aDouble -> aDouble * multiplier);
     }
 
+    public void multiply(final double[] doubles) {
+        if (doubles.length != length()) {
+            System.err.println("Vector length mismatch. Cannot multiply vector.");
+            return;
+        }
+        this.applyToElement((index, value) -> value * doubles[index]);
+    }
+
+
     /**
      * Multiplies two vectors element-wise if this vector is of length η and the supplied
      * vector is of length η, otherwise the operation will not be performed
@@ -115,7 +120,7 @@ public class Vec {
             System.err.println("Vector length mismatch.");
             return;
         }
-        this.applyToElement((index, value) -> value * vector.getValue(index));
+        this.applyToElement((index, value) -> value * vector.get(index));
     }
 
     /**
@@ -149,7 +154,7 @@ public class Vec {
     public Matrix toMatrix() {
         final Matrix matrix = new Matrix(length(), 1);
         for (int i = 0; i < matrix.getRows(); i++) {
-            matrix.set(i, 0, getValue(i));
+            matrix.set(i, 0, get(i));
         }
         return matrix;
     }
@@ -161,7 +166,7 @@ public class Vec {
      */
     public void print() {
         for (final double d : data) {
-            System.out.printf("[ %,.7g ]%n", d);
+            System.out.printf("[ %f ]%n", d);
         }
     }
 
@@ -209,7 +214,7 @@ public class Vec {
         this.data[index] = value;
     }
 
-    public double getValue(final int index) {
+    public double get(final int index) {
         return data[index];
     }
 

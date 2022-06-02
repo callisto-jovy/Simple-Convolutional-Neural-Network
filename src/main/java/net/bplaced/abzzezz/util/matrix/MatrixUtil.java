@@ -19,7 +19,7 @@ public class MatrixUtil {
         final Matrix temp = new Matrix(matrix0.getRows(), matrix0.getCols());
         for (int i = 0; i < matrix0.getRows(); i++) {
             for (int j = 0; j < matrix0.getCols(); j++) {
-                final double value = matrix0.getDataAtPos(i, j) - matrix1.getDataAtPos(i, j);
+                final double value = matrix0.get(i, j) - matrix1.get(i, j);
                 temp.set(i, j, value);
             }
         }
@@ -44,7 +44,7 @@ public class MatrixUtil {
             for (int j = 0; j < temp.getCols(); j++) {
                 double sum = 0;
                 for (int k = 0; k < matrix0.getCols(); k++) {
-                    sum += matrix0.getDataAtPos(i, k) * matrix0.getDataAtPos(k, j);
+                    sum += matrix0.get(i, k) * matrix0.get(k, j);
                 }
                 temp.set(i, j, sum);
             }
@@ -61,7 +61,7 @@ public class MatrixUtil {
         final Matrix temp = new Matrix(matrix0.getRows(), matrix0.getCols());
         for (int i = 0; i < matrix0.getRows(); i++) {
             for (int j = 0; j < matrix0.getCols(); j++) {
-                temp.set(i, j, matrix0.getDataAtPos(i, j));
+                temp.set(i, j, matrix0.get(i, j));
             }
         }
         return temp;
@@ -106,7 +106,7 @@ public class MatrixUtil {
 
         for (int i = 0; i < matrix.getRows(); i++) {
             for (int j = 0; j < matrix.getCols(); j++) {
-                entries[i * matrix.getRows() + j] = matrix.getDataAtPos(i, j);
+                entries[i * matrix.getRows() + j] = matrix.get(i, j);
             }
         }
         return entries;

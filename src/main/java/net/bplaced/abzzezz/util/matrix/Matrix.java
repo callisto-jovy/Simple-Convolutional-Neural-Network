@@ -45,6 +45,7 @@ public class Matrix {
     public void randomize() {
         this.applyToElement(value -> Math.random());
     }
+
     public void randomizeInteger() {
         this.applyToElement(value -> (double) ThreadLocalRandom.current().nextInt(5));
     }
@@ -58,6 +59,7 @@ public class Matrix {
 
     /**
      * Fills the matrix with a supplied value
+     *
      * @param value the value to fill the matrix with
      */
     public void fill(double value) {
@@ -84,7 +86,7 @@ public class Matrix {
             return;
             //throw new RuntimeException("Matrix mismatch");
         }
-        this.applyToElement((row, col) -> data[row][col] + matrix.getDataAtPos(row, col));
+        this.applyToElement((row, col) -> data[row][col] + matrix.get(row, col));
     }
 
     /**
@@ -110,7 +112,7 @@ public class Matrix {
         //See the example above
         for (int i = 0; i < getRows(); i++) {
             for (int j = 0; j < getCols(); j++) {
-                final double data = getDataAtPos(i, j);
+                final double data = get(i, j);
                 matrix.set(i + paddingSize, j + paddingSize, data);
             }
         }
@@ -132,10 +134,10 @@ public class Matrix {
      * @return the matrix's max value
      */
     public double maxValue() {
-        double max = Double.MIN_VALUE;
+        double max = data[0][0];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                max = Math.max(max, getDataAtPos(i, j));
+                max = Math.max(max, get(i, j));
             }
         }
         return max;
@@ -147,7 +149,11 @@ public class Matrix {
      * @param matrix another matrix whose elements are to be multiplied with
      */
     public void multiply(final Matrix matrix) {
-        this.applyToElement((row, col) -> data[row][col] *= matrix.getDataAtPos(row, col));
+        if (matrix.rows != rows || matrix.cols != cols) {
+            System.err.println("Matrix mismatch. Cannot multiply matrices");
+            return;
+        }
+        this.applyToElement((row, col) -> data[row][col] * matrix.get(row, col));
     }
 
     /**
@@ -167,7 +173,7 @@ public class Matrix {
         final Matrix temp = new Matrix(rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                final double value = getDataAtPos(i, j) * (1 - getDataAtPos(i, j));
+                final double value = get(i, j) * (1 - get(i, j));
                 temp.set(i, j, value);
             }
         }
@@ -181,7 +187,7 @@ public class Matrix {
         final Matrix temp = new Matrix(rows, cols);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                final double value = Util.relu(getDataAtPos(i, j));
+                final double value = Util.relu(get(i, j));
                 temp.set(i, j, value);
             }
         }
@@ -198,7 +204,7 @@ public class Matrix {
         double sum = 0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                sum += getDataAtPos(i, j);
+                sum += get(i, j);
             }
         }
         return sum;
@@ -212,14 +218,13 @@ public class Matrix {
      */
     public double sumAndMultiply(final Matrix matrix) {
         if (matrix.rows != rows || matrix.cols != cols) {
-            System.err.println("Matrix mismatch");
+            System.err.println("Matrix mismatch. Cannot multiply matrices and sum the result.");
             return -1;
-            //throw new RuntimeException("Matrix mismatch");
         }
         double sum = 0;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                sum += getDataAtPos(i, j) * matrix.getDataAtPos(i, j);
+                sum += get(i, j) * matrix.get(i, j);
             }
         }
         return sum;
@@ -244,7 +249,7 @@ public class Matrix {
 
         for (int i = row, i1 = 0; i < row + width; i++, i1++) {
             for (int j = col, j1 = 0; j < col + height; j++, j1++) {
-                final double data = getDataAtPos(i, j);
+                final double data = get(i, j);
                 temp.set(i1, j1, data);
             }
         }
@@ -311,11 +316,31 @@ public class Matrix {
         }
     }
 
+    /**
+     * @return the matrix's rows
+     * @prarm row the row's index
+     */
+    public double[] getRow(final int row) {
+        return data[row];
+    }
+
+    /**
+     * @param column the column to get
+     * @return the matrix's columns
+     */
+    public double[] getColumn(final int column) {
+        final double[] columnData = new double[rows];
+        for (int i = 0; i < rows; i++) {
+            columnData[i] = data[i][column];
+        }
+        return columnData;
+    }
+
     public void set(final int row, final int col, final double data) {
         this.data[row][col] = data;
     }
 
-    public double getDataAtPos(final int row, final int col) {
+    public double get(final int row, final int col) {
         return this.data[row][col];
     }
 

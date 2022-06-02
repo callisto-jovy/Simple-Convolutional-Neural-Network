@@ -7,7 +7,7 @@ public class Util {
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat(".###");
     public static final int IMAGE_SIZE = 128;
 
-    public static final int FULLY_CONNECTED_NETWORK_DEPTH = 3;
+    public static final int FULLY_CONNECTED_NETWORK_DEPTH = 2;
 
     public static final int FULLY_CONNECTED_NETWORK_WIDTH = 300;
 
@@ -16,9 +16,8 @@ public class Util {
     }
 
     public static double relu(final double value) {
-        return Math.max(value, 0.01);
+        return Math.max(0, value);
     }
-
     public static double derelu(final double value) {
         return (value > 0.01) ? 1.0 : 0.0;
     }

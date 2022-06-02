@@ -5,7 +5,6 @@ import net.bplaced.abzzezz.network.components.FullyConnectedLayer;
 import net.bplaced.abzzezz.network.components.PoolingLayer;
 import net.bplaced.abzzezz.network.components.SoftMaxLayer;
 import net.bplaced.abzzezz.util.TrainData;
-import net.bplaced.abzzezz.util.Util;
 import net.bplaced.abzzezz.util.image.ImageUtil;
 import net.bplaced.abzzezz.util.matrix.Matrix;
 import net.bplaced.abzzezz.util.vector.Vec;
@@ -18,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 import static net.bplaced.abzzezz.util.Util.*;
 
@@ -33,10 +31,11 @@ public class CNN {
 
         convolutionLayers.add(new ConvolutionLayer());
         poolingLayers.add(new PoolingLayer());
-        convolutionLayers.add(new ConvolutionLayer());
-        poolingLayers.add(new PoolingLayer());
-        kernelList.add(initFilters(15, 9));
-        kernelList.add(initFilters(10, 5));
+        //   convolutionLayers.add(new ConvolutionLayer());
+        //    poolingLayers.add(new PoolingLayer());
+        // kernelList.add(initFilters(15, 9));
+        kernelList.add(initFilters(2, 5));
+        //  kernelList.add(initFilters(10, 5));
 
         if (convolutionLayers.size() != poolingLayers.size()) {
             throw new IllegalStateException("Convolution and pooling layers must have the same amount of layers");
@@ -61,36 +60,33 @@ public class CNN {
                     }
                     poolingOutputs = poolingOutputsTemp.toArray(Matrix[]::new);
                 }
-                //This is a shitty, suboptimal way to do it, but it works
-                //Loop through the latest pooling output and join them to one vector
-                final List<Double> poolingOutputsJoined = new ArrayList<>();
-                for (final Matrix poolingOutput : poolingOutputs) {
-                    final Vec vector = poolingOutput.toVec();
-                    for (int j = 0; j < vector.length(); j++) {
-                        poolingOutputsJoined.add(vector.getValue(j));
+                //Create a vector the size off all matrices
+                final int vectorSize = Arrays.stream(poolingOutputs)
+                        .mapToInt(value -> value.getRows() * value.getCols())
+                        .sum();
+                //Add every matrix's elements to the vector, thereby flatten the output
+                final Vec poolingOutputsVec = new Vec(vectorSize);
+                for (int j = 0; j < poolingOutputs.length; j++) {
+                    final Matrix matrix = poolingOutputs[j];
+                    for (int k = 0; k < matrix.getRows(); k++) {
+                        for (int l = 0; l < matrix.getCols(); l++) {
+                            poolingOutputsVec.set(j * matrix.getRows() + l, matrix.get(k, l));
+                        }
                     }
                 }
-                //Fucking shit.
-                final Vec poolingOutputsJoinedVec = new Vec(poolingOutputsJoined.size());
-                for (int j = 0; j < poolingOutputsJoinedVec.length(); j++) {
-                    poolingOutputsJoinedVec.set(j, poolingOutputsJoined.get(j));
-                }
 
-                final FullyConnectedLayer inputLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, poolingOutputsJoinedVec.length());
+                System.out.printf("Feeding %d to the network%n", poolingOutputsVec.length());
 
-                Vec output = inputLayer.forwardPropagation(poolingOutputsJoinedVec);
+                final FullyConnectedLayer inputLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, poolingOutputsVec.length());
+                Vec output = inputLayer.forwardPropagation(poolingOutputsVec);
 
                 for (int j = 0; j < FULLY_CONNECTED_NETWORK_DEPTH; j++) {
                     FullyConnectedLayer fullyConnectedLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, FULLY_CONNECTED_NETWORK_WIDTH);
                     output = fullyConnectedLayer.forwardPropagation(output);
                 }
 
-                final FullyConnectedLayer outputLayer = new FullyConnectedLayer(1, FULLY_CONNECTED_NETWORK_WIDTH);
-                output = outputLayer.forwardPropagation(output);
-                output.print();
-
-                // final SoftMaxLayer maxLayer = new SoftMaxLayer(1, 1);
-                // maxLayer.forwardPropagation(output.toMatrix()).print();
+                final SoftMaxLayer maxLayer = new SoftMaxLayer(FULLY_CONNECTED_NETWORK_WIDTH, 1);
+                maxLayer.forwardPropagation(output).print();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -104,10 +100,10 @@ public class CNN {
         //Dog directory
         if (rnd == 0) {
             final File randomInnerDir = getRandomFileFromDirectory(dogImages);
-            return new TrainData(ImageUtil.getMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), 1);
+            return new TrainData(ImageUtil.getNormalizedMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), 1);
         } else { //OtherImages image directory
             final File randomInnerDir = getRandomFileFromDirectory(otherImages);
-            return new TrainData(ImageUtil.getMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), 0);
+            return new TrainData(ImageUtil.getNormalizedMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), 0);
         }
     }
 

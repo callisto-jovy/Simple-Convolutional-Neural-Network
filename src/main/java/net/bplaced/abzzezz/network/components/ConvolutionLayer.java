@@ -1,5 +1,6 @@
 package net.bplaced.abzzezz.network.components;
 
+import net.bplaced.abzzezz.util.Util;
 import net.bplaced.abzzezz.util.matrix.Matrix;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,6 @@ public class ConvolutionLayer {
 
                 final Matrix subMatrix = paddedInput.subMatrix(i, j, kernel.getRows(), kernel.getCols());
                 final double res = subMatrix.sumAndMultiply(kernel);
-
                 resultMatrix.set(i, j, res);
             }
         }
@@ -46,7 +46,7 @@ public class ConvolutionLayer {
         //  return Arrays.stream(kernels).map(matrix -> convolve(input, matrix)).toArray(Matrix[]::new);
         final Matrix[] matrices = new Matrix[kernels.length];
         for (int i = 0; i < kernels.length; i++) {
-            matrices[i] = convolve(input, kernels[i]).relu();
+            matrices[i] = convolve(input, kernels[i]);
         }
         return matrices;
     }
