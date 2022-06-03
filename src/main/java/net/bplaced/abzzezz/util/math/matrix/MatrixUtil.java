@@ -1,14 +1,16 @@
-package net.bplaced.abzzezz.util.matrix;
-import java.util.Arrays;
+package net.bplaced.abzzezz.util.math.matrix;
+
+import java.util.Random;
 
 public class MatrixUtil {
 
     /**
      * Subtracts two matrices from one another
+     *
      * @param matrix0 the first matrix
      * @param matrix1 the second matrix
      * @return a new matrix created from an element-wise subtraction of the two matrices
-     * @see Matrix#subtract(Matrix) 
+     * @see Matrix#subtract(Matrix)
      */
     public static Matrix subtractMatrices(final Matrix matrix0, final Matrix matrix1) {
         if (matrix0.getRows() != matrix1.getRows() || matrix0.getCols() != matrix1.getCols()) {
@@ -54,6 +56,7 @@ public class MatrixUtil {
 
     /**
      * Transposes a matrix to a new one
+     *
      * @param matrix0 matrix to transpose from
      * @return the new matrix
      */
@@ -69,6 +72,7 @@ public class MatrixUtil {
 
     /**
      * Creates a new matrix from a one-dimensional array of doubles
+     *
      * @param array a double array to convert from
      * @return a matrix constructed from the given array
      * with one colum e.g.: [  data  ]
@@ -83,6 +87,7 @@ public class MatrixUtil {
 
     /**
      * Converts a two-dimensional array of doubles to a matrix
+     *
      * @param array double array
      * @return a matrix constructed from the array of doubles
      */
@@ -98,6 +103,7 @@ public class MatrixUtil {
 
     /**
      * Converts a matrix to a one-dimensional array
+     *
      * @param matrix matrix to convert
      * @return the matrix's data reduced to a one-dimenstional array of doubles
      */
@@ -112,19 +118,36 @@ public class MatrixUtil {
         return entries;
     }
 
-    /**
-     * creates a vector of size and assigns the specified value to every element.
-     *
-     * @param size  size of the vector.
-     * @param value the value to be assigned to every element.
-     * @return a 2D array of size [1][size].
-     */
-    public static double[][] v_assign(int size, double value) {
-        final double[][] result = new double[1][size];
-        Arrays.fill(result[0], value);
-        return result;
+    public static double sumAndMultiply(final Matrix m1, final Matrix m2) {
+        if (m1.getRows() != m2.getRows() || m1.getCols() != m2.getCols()) {
+            System.err.println("Matrix mismatch. Cannot multiply matrices and sum the result.");
+            return -1;
+        }
+        double sum = 0;
+        for (int i = 0; i < m1.getCols(); i++) {
+            for (int j = 0; j < m1.getRows(); j++) {
+                sum += m1.get(i, j) * m2.get(i, j);
+            }
+        }
+        return sum;
     }
 
+    /**
+     * Initializes a matrix with random values based on xavier initialization
+     *
+     * @param matrix the matrix to initialize
+     * @return the initialized matrix
+     */
+    public static Matrix initializeWeightMatrix(final Matrix matrix, final int inputs) {
+        final Matrix temp = new Matrix(matrix.getRows(), matrix.getCols());
+        for (int i = 0; i < matrix.getRows(); i++) {
+            for (int j = 0; j < matrix.getCols(); j++) {
+                final double value = new Random().nextGaussian(0, Math.sqrt(2. / inputs));
+                temp.set(i, j, value);
+            }
+        }
+        return temp;
+    }
 
     /**
      * reorganizes a matrix into the desired 3D matrix of shape [d][h][w].

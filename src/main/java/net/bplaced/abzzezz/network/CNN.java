@@ -1,13 +1,11 @@
 package net.bplaced.abzzezz.network;
 
-import net.bplaced.abzzezz.network.components.ConvolutionLayer;
-import net.bplaced.abzzezz.network.components.FullyConnectedLayer;
-import net.bplaced.abzzezz.network.components.PoolingLayer;
-import net.bplaced.abzzezz.network.components.SoftMaxLayer;
+import net.bplaced.abzzezz.network.components.*;
 import net.bplaced.abzzezz.util.TrainData;
 import net.bplaced.abzzezz.util.image.ImageUtil;
-import net.bplaced.abzzezz.util.matrix.Matrix;
-import net.bplaced.abzzezz.util.vector.Vec;
+import net.bplaced.abzzezz.util.math.MathUtil;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.vector.Vec;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -18,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static net.bplaced.abzzezz.util.Util.*;
+import static net.bplaced.abzzezz.util.Const.*;
 
 public class CNN {
 
@@ -31,11 +29,16 @@ public class CNN {
 
         convolutionLayers.add(new ConvolutionLayer());
         poolingLayers.add(new PoolingLayer());
-        //   convolutionLayers.add(new ConvolutionLayer());
-        //    poolingLayers.add(new PoolingLayer());
-        // kernelList.add(initFilters(15, 9));
-        kernelList.add(initFilters(2, 5));
-        //  kernelList.add(initFilters(10, 5));
+        kernelList.add(initFilters(5, 9));
+
+        convolutionLayers.add(new ConvolutionLayer());
+        poolingLayers.add(new PoolingLayer());
+        kernelList.add(initFilters(10, 5));
+
+        convolutionLayers.add(new ConvolutionLayer());
+        poolingLayers.add(new PoolingLayer());
+        kernelList.add(initFilters(5, 3));
+
 
         if (convolutionLayers.size() != poolingLayers.size()) {
             throw new IllegalStateException("Convolution and pooling layers must have the same amount of layers");
@@ -43,8 +46,8 @@ public class CNN {
 
         for (int i = 0; i < iterations; i++) {
             try {
-                final TrainData trainData = getRandomTrainingData();
-                Matrix[] poolingOutputs = new Matrix[]{trainData.getInput()};
+                final TrainData trainingData = getRandomTrainingData();
+                Matrix[] poolingOutputs = new Matrix[]{trainingData.getInput()};
 
                 for (int j = 0; j < convolutionLayers.size(); j++) {
                     final ConvolutionLayer convolutionLayer = convolutionLayers.get(j);
@@ -53,8 +56,8 @@ public class CNN {
 
                     final List<Matrix> poolingOutputsTemp = new ArrayList<>();
 
-                    for (int k = 0; k < poolingOutputs.length; k++) {
-                        final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(trainData.getInput(), kernels);
+                    for (final Matrix output : poolingOutputs) {
+                        final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(output, kernels);
                         final Matrix[] poolingOutput = poolingLayer.forwardPropagation(convolutionOutput);
                         poolingOutputsTemp.addAll(Arrays.asList(poolingOutput)); //Add to the current pooling
                     }
@@ -75,18 +78,23 @@ public class CNN {
                     }
                 }
 
-                System.out.printf("Feeding %d to the network%n", poolingOutputsVec.length());
-
-                final FullyConnectedLayer inputLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, poolingOutputsVec.length());
+                System.out.printf("Feeding %d inputs to the network%n", poolingOutputsVec.length());
+                final FullyConnectedLayer inputLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, poolingOutputsVec.length(), MathUtil.ActivationFunction.RELU);
                 Vec output = inputLayer.forwardPropagation(poolingOutputsVec);
 
                 for (int j = 0; j < FULLY_CONNECTED_NETWORK_DEPTH; j++) {
-                    FullyConnectedLayer fullyConnectedLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, FULLY_CONNECTED_NETWORK_WIDTH);
-                    output = fullyConnectedLayer.forwardPropagation(output);
+                    final FullyConnectedLayer hiddenLayer = new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, FULLY_CONNECTED_NETWORK_WIDTH, MathUtil.ActivationFunction.RELU);
+                    output = hiddenLayer.forwardPropagation(output);
                 }
+                System.out.println("Neural Network output: ");
 
-                final SoftMaxLayer maxLayer = new SoftMaxLayer(FULLY_CONNECTED_NETWORK_WIDTH, 1);
-                maxLayer.forwardPropagation(output).print();
+                final FullyConnectedLayer outputLayer = new FullyConnectedLayer(1, FULLY_CONNECTED_NETWORK_WIDTH, MathUtil.ActivationFunction.SOFTMAX);
+                output = outputLayer.forwardPropagation(output);
+                output.print();
+
+                //final SoftMaxLayer maxLayer = new SoftMaxLayer(output.length(), 1);
+                //final Vec softMaxOutput = maxLayer.forwardPropagation(output);
+                // softMaxOutput.print();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -1,7 +1,8 @@
 package net.bplaced.abzzezz.network.components;
 
-import net.bplaced.abzzezz.util.Util;
-import net.bplaced.abzzezz.util.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.MathUtil;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.matrix.MatrixUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class ConvolutionLayer {
@@ -33,7 +34,7 @@ public class ConvolutionLayer {
             for (int j = 0; j + kernel.getCols() < paddedInput.getCols(); j++) {
 
                 final Matrix subMatrix = paddedInput.subMatrix(i, j, kernel.getRows(), kernel.getCols());
-                final double res = subMatrix.sumAndMultiply(kernel);
+                final double res = MatrixUtil.sumAndMultiply(subMatrix, kernel);
                 resultMatrix.set(i, j, res);
             }
         }

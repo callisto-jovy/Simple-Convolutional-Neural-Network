@@ -1,8 +1,10 @@
-package net.bplaced.abzzezz.util.matrix;
+package net.bplaced.abzzezz.util.math.matrix;
 
-import net.bplaced.abzzezz.util.Util;
-import net.bplaced.abzzezz.util.vector.Vec;
+import net.bplaced.abzzezz.util.Const;
+import net.bplaced.abzzezz.util.math.MathUtil;
+import net.bplaced.abzzezz.util.math.vector.Vec;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -43,7 +45,7 @@ public class Matrix {
      * Each element is assigned a random value between 0 and 1
      */
     public void randomize() {
-        this.applyToElement(value -> Math.random());
+        this.applyToElement(value -> new Random().nextGaussian());
     }
 
     public void randomizeInteger() {
@@ -166,32 +168,19 @@ public class Matrix {
     }
 
     public void sigmoid() {
-        this.applyToElement(value -> 1 / (1 + Math.exp(-value)));
+        this.applyToElement(MathUtil::sigmoid);
     }
 
-    public Matrix dsigmoid() {
-        final Matrix temp = new Matrix(rows, cols);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                final double value = get(i, j) * (1 - get(i, j));
-                temp.set(i, j, value);
-            }
-        }
-        return temp;
+    public void sigmoidDerivative() {
+        this.applyToElement(MathUtil::sigmoidDerivative);
     }
 
-    /**
-     * @return the matrix's min value
-     */
-    public Matrix relu() {
-        final Matrix temp = new Matrix(rows, cols);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                final double value = Util.relu(get(i, j));
-                temp.set(i, j, value);
-            }
-        }
-        return temp;
+    public void relu() {
+        this.applyToElement(MathUtil::relu);
+    }
+
+    public void reluDerivative() {
+        this.applyToElement(MathUtil::reluDerivative);
     }
 
     /**

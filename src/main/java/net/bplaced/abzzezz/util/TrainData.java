@@ -1,6 +1,6 @@
 package net.bplaced.abzzezz.util;
 
-import net.bplaced.abzzezz.util.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
 
 public class TrainData {
 

@@ -1,6 +1,6 @@
 package net.bplaced.abzzezz.network.components;
 
-import net.bplaced.abzzezz.util.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
 import org.jetbrains.annotations.NotNull;
 
 public class PoolingLayer {
@@ -27,6 +27,7 @@ public class PoolingLayer {
                 final Matrix subMatrix = input.subMatrix(i, j, p, p);
 
                 matrix.set((i - p) / 2 + 1, (j - p) / 2 + 1, subMatrix.maxValue());
+                //System.out.println((int) subMatrix.maxValue());
             }
         }
         return matrix;

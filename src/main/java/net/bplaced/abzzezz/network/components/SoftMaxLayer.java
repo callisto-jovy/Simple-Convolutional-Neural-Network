@@ -1,15 +1,13 @@
 package net.bplaced.abzzezz.network.components;
 
-import net.bplaced.abzzezz.util.Util;
-import net.bplaced.abzzezz.util.matrix.Matrix;
-import net.bplaced.abzzezz.util.vector.Vec;
+import net.bplaced.abzzezz.util.math.vector.Vec;
 
 public class SoftMaxLayer {
-    private Vec bias;
+    private final Vec bias;
 
-    private Vec lastOutput;
+    private final Vec lastOutput;
 
-    private Vec lastInput;
+    private final Vec lastInput;
 
     public SoftMaxLayer(final int input, final int output) {
         this.bias = new Vec(output, 0);
@@ -18,7 +16,6 @@ public class SoftMaxLayer {
     }
 
     public Vec forwardPropagation(final Vec input) {
-        //Softmax
         if (input.length() != lastInput.length()) {
             System.err.printf("Vector length mismatch. @SoftMaxLayer#computeOutput Input was: %d, expected: %d%n", input.length(), lastInput.length());
             return null;

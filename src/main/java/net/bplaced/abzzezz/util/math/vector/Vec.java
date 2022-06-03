@@ -1,6 +1,7 @@
-package net.bplaced.abzzezz.util.vector;
+package net.bplaced.abzzezz.util.math.vector;
 
-import net.bplaced.abzzezz.util.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.MathUtil;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
 
 import java.util.Arrays;
 import java.util.function.BiFunction;
@@ -134,22 +135,38 @@ public class Vec {
         return max;
     }
 
-    public void sigmoid() {
-        this.applyToElement(value -> 1 / (1 + Math.exp(-value)));
+    /**
+     * Applies the relu function to each element of the vector
+     */
+    public void relu() {
+        this.applyToElement(MathUtil::relu);
     }
 
-    public Vec dsigmoid() {
-        final Vec temp = new Vec(length());
-        for (int i = 0; i < temp.length(); i++) {
-            temp.set(i, data[i] * (1 - data[i]));
-        }
-        return temp;
+    /**
+     * Applies the relu's derivative function to each element of the vector
+     */
+    public void reluDerivative() {
+        this.applyToElement(MathUtil::reluDerivative);
+    }
+
+    /**
+     * Applied the sigmoid function to each element of the vector
+     */
+    public void sigmoid() {
+        this.applyToElement(MathUtil::sigmoid);
+    }
+
+    /**
+     * Applies the sigmoid's derivative function to each element of the vector
+     */
+    public void sigmoidDerivative() {
+        this.applyToElement(MathUtil::sigmoidDerivative);
     }
 
     /**
      * Converts the vector into a matrix of size η * 1
      *
-     * @return
+     * @return a matrix of size η * 1
      */
     public Matrix toMatrix() {
         final Matrix matrix = new Matrix(length(), 1);

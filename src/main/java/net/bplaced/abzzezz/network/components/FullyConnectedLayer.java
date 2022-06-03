@@ -1,8 +1,9 @@
 package net.bplaced.abzzezz.network.components;
 
-import net.bplaced.abzzezz.util.Util;
-import net.bplaced.abzzezz.util.matrix.Matrix;
-import net.bplaced.abzzezz.util.vector.Vec;
+import net.bplaced.abzzezz.util.math.MathUtil;
+import net.bplaced.abzzezz.util.math.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.matrix.MatrixUtil;
+import net.bplaced.abzzezz.util.math.vector.Vec;
 import org.jetbrains.annotations.NotNull;
 
 public class FullyConnectedLayer {
@@ -11,14 +12,17 @@ public class FullyConnectedLayer {
     private final Vec lastInput;
     private final Vec lastOutput;
 
-    private final int bias = 0;
+    private final int bias = 1;
 
-    public FullyConnectedLayer(final int numNodes, final int numInputs) {
-        this.weights = new Matrix(numNodes, numInputs + 1);
+    private final MathUtil.ActivationFunction activationFunction;
+
+    public FullyConnectedLayer(final int numNodes, final int numInputs, final MathUtil.ActivationFunction activationFunction) {
+        this.weights = MatrixUtil.initializeWeightMatrix(new Matrix(numNodes, numInputs + 1), numInputs);
         this.lastInput = new Vec(numInputs + 1);
         this.lastOutput = new Vec(numNodes);
         // Set the last value to be the offset. This will never change.
         this.lastInput.set(lastInput.length() - 1, -1);
+        this.activationFunction = activationFunction;
     }
 
     public Vec forwardPropagation(final @NotNull Vec input) {
@@ -33,14 +37,17 @@ public class FullyConnectedLayer {
         calculate the last inputs sum, from each element multiplied by the corresponding weight
         [n1, n2, n3, ..., nN] * [w1, w2, w3, ..., wN]
          */
+
+
         for (int i = 0; i < lastOutput.length(); i++) {
             double sum = 0;
-            for (int j = 0; j < lastInput.length() - 1; j++) {
-                sum += weights.get(i, j) * lastInput.get(j);
-                //    System.out.println(weights.get(i, j) + " * " + lastInput.get(j));
+            for (int j = 0; j < lastInput.length(); j++) {
+                sum += (weights.get(i, j) * lastInput.get(j));
+                //System.out.println(weights.get(i, j) + " * " + lastInput.get(j));
             }
             sum += bias;
-            lastOutput.set(i, Util.sigmoid(sum));
+            //System.out.println(sum);
+            lastOutput.set(i, activationFunction.apply(sum));
         }
         return lastOutput;
     }
