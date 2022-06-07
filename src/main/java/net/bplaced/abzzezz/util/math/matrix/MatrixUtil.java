@@ -2,6 +2,8 @@ package net.bplaced.abzzezz.util.math.matrix;
 
 import java.util.Random;
 
+import static net.bplaced.abzzezz.util.Const.RANDOM;
+
 public class MatrixUtil {
 
     /**
@@ -133,7 +135,8 @@ public class MatrixUtil {
     }
 
     /**
-     * Initializes a matrix with random values based on xavier initialization
+     * Initializes a matrix with random values according to the number of inputs
+     * which is optimal for the relu activation function
      *
      * @param matrix the matrix to initialize
      * @return the initialized matrix
@@ -142,7 +145,7 @@ public class MatrixUtil {
         final Matrix temp = new Matrix(matrix.getRows(), matrix.getCols());
         for (int i = 0; i < matrix.getRows(); i++) {
             for (int j = 0; j < matrix.getCols(); j++) {
-                final double value = new Random().nextGaussian(0, Math.sqrt(2. / inputs));
+                final double value = RANDOM.nextGaussian(0, Math.sqrt(2. / inputs));
                 temp.set(i, j, value);
             }
         }
@@ -157,7 +160,7 @@ public class MatrixUtil {
      * @param d     the depth of the reshaped matrix.
      * @param h     the row size of the reshaped matrix.
      * @param w     the column size of the reshaped matrix.
-     * @return
+     * @return a reshaped matrix
      */
     public static double[][][] reshape(double[][] input, int d, int h, int w) {
         //input --> [1Xn]  output --> [d][h][w]

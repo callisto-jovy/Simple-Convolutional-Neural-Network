@@ -2,6 +2,7 @@ package net.bplaced.abzzezz.network.components;
 
 import net.bplaced.abzzezz.util.math.vector.Vec;
 
+@Deprecated
 public class SoftMaxLayer {
     private final Vec bias;
 

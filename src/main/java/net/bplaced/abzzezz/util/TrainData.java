@@ -1,13 +1,14 @@
 package net.bplaced.abzzezz.util;
 
 import net.bplaced.abzzezz.util.math.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.vector.Vec;
 
 public class TrainData {
 
     private final Matrix input;
-    private final double expectedResult;
+    private final Vec expectedResult;
 
-    public TrainData(Matrix input, double expectedResult) {
+    public TrainData(Matrix input, Vec expectedResult) {
         this.input = input;
         this.expectedResult = expectedResult;
     }
@@ -16,7 +17,7 @@ public class TrainData {
         return input;
     }
 
-    public double getExpectedResult() {
+    public Vec getExpectedResult() {
         return expectedResult;
     }
 }

@@ -1,5 +1,6 @@
 package net.bplaced.abzzezz.network.components;
 
+import net.bplaced.abzzezz.util.Const;
 import net.bplaced.abzzezz.util.math.MathUtil;
 import net.bplaced.abzzezz.util.math.matrix.Matrix;
 import net.bplaced.abzzezz.util.math.matrix.MatrixUtil;
@@ -53,7 +54,27 @@ public class FullyConnectedLayer {
     }
 
     public Vec propagateBackwards(final Vec delta) {
+        if (delta.length() != lastOutput.length()) {
+            System.err.printf("Vector length mismatch. @FullyConnectedLayer#computeOutput Input was: %d, expected: %d%n", delta.length(), lastOutput.length());
+            return null;
+        }
+        final Vec deltaWeights = new Vec(weights.getCols() - 1);
 
-        return null;
+        // Compute deltas for the next layer
+        for (int i = 0; i < deltaWeights.length(); i++) {
+            double sum = 0;
+            for (int j = 0; j < delta.length(); j++) {
+                sum += (weights.get(j, i) * delta.get(j));
+            }
+            deltaWeights.set(i, sum);
+        }
+
+        // Update the weights using the propped delta.
+        for (int i = 0; i < weights.getRows(); i++) {
+            for (int j = 0; j < weights.getCols() - 1; j++) {
+                weights.set(i, j, weights.get(i, j) + Const.LEARNING_RATE * deltaWeights.get(j) * lastInput.get(i));
+            }
+        }
+        return deltaWeights;
     }
 }

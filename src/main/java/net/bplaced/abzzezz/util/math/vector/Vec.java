@@ -238,4 +238,16 @@ public class Vec {
     public int length() {
         return data.length;
     }
+
+    public boolean matches(Vec expectedResult) {
+        if (expectedResult.length() != length()) {
+            return false;
+        }
+        for (int i = 0; i < length(); i++) {
+            if (get(i) != expectedResult.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

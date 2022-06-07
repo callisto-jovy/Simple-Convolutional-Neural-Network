@@ -4,10 +4,13 @@ import net.bplaced.abzzezz.util.Const;
 import net.bplaced.abzzezz.util.math.MathUtil;
 import net.bplaced.abzzezz.util.math.vector.Vec;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static net.bplaced.abzzezz.util.Const.RANDOM;
 
 public class Matrix {
     /**
@@ -45,7 +48,7 @@ public class Matrix {
      * Each element is assigned a random value between 0 and 1
      */
     public void randomize() {
-        this.applyToElement(value -> new Random().nextGaussian());
+        this.applyToElement(value -> RANDOM.nextGaussian());
     }
 
     public void randomizeInteger() {
@@ -64,8 +67,8 @@ public class Matrix {
      *
      * @param value the value to fill the matrix with
      */
-    public void fill(double value) {
-        this.applyToElement((integer, integer2) -> value);
+    public void fill(final double value) {
+        this.applyToElement((integer) -> value);
     }
 
     /**
@@ -246,12 +249,32 @@ public class Matrix {
     }
 
     /**
+     * Searches the matrix for a specific value and returns the row and column of the first occurrence
+     *
+     * @param value the value to search for
+     * @return an array containing the row and column of the first occurrence of the value,
+     * or null if the value is not found, wrapped in an optional
+     */
+    public Optional<int[]> indexOfValue(final double value) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (get(i, j) == value) {
+                    return Optional.of(new int[]{i, j});
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+
+
+    /**
      * Pretty prints the matrix
      */
     public void print() {
         for (int i = 0; i < getRows(); i++) {
             for (int j = 0; j < getCols(); j++) {
-                System.out.printf("%f\t", data[i][j]);
+                System.out.printf("%f \t", data[i][j]);
             }
             System.out.println();
         }

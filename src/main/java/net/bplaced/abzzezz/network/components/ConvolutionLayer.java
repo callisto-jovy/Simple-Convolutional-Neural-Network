@@ -52,4 +52,44 @@ public class ConvolutionLayer {
         return matrices;
     }
 
+    public Matrix[] backwardsPropagation(final Matrix[] delta) {
+        final Matrix[] newKernels = new Matrix[kernels.length];
+        final Matrix[] error = new Matrix[delta.length];
+        final Matrix[] newInput = new Matrix[error.length];
+
+        for (int o = 0; o < delta.length; o++) {
+            error[o] = new Matrix(input.getRows(), input.getCols());
+            newInput[o] = new Matrix(input.getRows(), input.getCols());
+
+            for (int i = 0; i < kernels.length; i++) {
+                for (int j = 0; j < input.getRows(); j++) {
+                    for (int k = 0; k < input.getCols(); k++) {
+
+                        for (int l = 0; l < kernels[i].getRows(); l++) {
+                            for (int m = 0; m < kernels[i].getCols(); m++) {
+
+                            }
+                        }
+
+
+                    }
+                }
+            }
+
+        }
+
+
+        for (int i = 0; i < input.getRows(); i++) {
+            for (int j = 0; j < input.getCols(); j++) {
+                for (int k = 0; k < kernels.length; k++) {
+                    kernels[k] = new Matrix(kernels[k].getRows(), kernels[k].getCols());
+                    kernels[k].fillZeros();
+                    final Matrix subMatrix = input.subMatrix(i, j, kernels[k].getRows(), kernels[k].getCols());
+
+                }
+
+            }
+        }
+        return newKernels;
+    }
 }
