@@ -3,8 +3,10 @@ package net.bplaced.abzzezz;
 import net.bplaced.abzzezz.network.CNN;
 import net.bplaced.abzzezz.network.components.ConvolutionLayer;
 import net.bplaced.abzzezz.network.components.PoolingLayer;
+import net.bplaced.abzzezz.util.image.ImageLoader;
 import net.bplaced.abzzezz.util.image.ImageUtil;
 import net.bplaced.abzzezz.util.math.matrix.Matrix;
+import net.bplaced.abzzezz.util.math.matrix.MatrixUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,39 +15,9 @@ import java.nio.file.Files;
 public class Main {
 
 
-    public static void main(final String[] args) throws IOException {
-        CNN.CONVOLUTIONAL_NEURAL_NETWORK.train(1000);
+    public static void main(final String[] args) {
+        CNN.CONVOLUTIONAL_NEURAL_NETWORK.train(100);
         CNN.CONVOLUTIONAL_NEURAL_NETWORK.test(10);
-
-        /*
-        final Matrix input = new Matrix(5, 5);
-        input.print();
-        System.out.println("----------------");
-        final ConvolutionLayer convolutionLayer = new ConvolutionLayer();
-        final Matrix[] kernels = CNN.initFilters(1, 3);
-
-        final Matrix[] matrices = convolutionLayer.forwardPropagation(input, kernels);
-
-        for (Matrix matrix : matrices) {
-            matrix.print();
-            System.out.println("----------------");
-        }
-
-        final PoolingLayer poolingLayer = new PoolingLayer();
-        final Matrix[] pooled = poolingLayer.forwardPropagation(matrices);
-
-        System.out.println("Pooled results:");
-        for (Matrix matrix : pooled) {
-            matrix.print();
-            System.out.println("----------------");
-        }
-
-        for (Matrix matrix : poolingLayer.backwardsPropagation(pooled)) {
-            matrix.print();
-            System.out.println("----------------");
-        }
-
-         */
 
         // convertImages();
     }

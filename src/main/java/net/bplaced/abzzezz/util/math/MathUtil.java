@@ -84,7 +84,7 @@ public class MathUtil {
      * @return the difference squared
      */
     public static double computeError(final double expectedValue, final double actualValue) {
-        return Math.pow((expectedValue - actualValue), 2);
+        return 0.5 * Math.pow((expectedValue - actualValue), 2);
     }
 
     /**

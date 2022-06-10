@@ -1,5 +1,6 @@
 package net.bplaced.abzzezz.network.components;
 
+import net.bplaced.abzzezz.util.Const;
 import net.bplaced.abzzezz.util.math.MathUtil;
 import net.bplaced.abzzezz.util.math.matrix.Matrix;
 import net.bplaced.abzzezz.util.math.matrix.MatrixUtil;
@@ -7,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ConvolutionLayer {
 
-    private Matrix input;
+    private Matrix[] input;
     private Matrix[] kernels;
 
     public Matrix convolve(@NotNull Matrix input, @NotNull Matrix kernel) {
@@ -41,55 +42,64 @@ public class ConvolutionLayer {
         return resultMatrix;
     }
 
-    public Matrix[] forwardPropagation(final @NotNull Matrix input, final @NotNull Matrix[] kernels) {
+    public Matrix[] forwardPropagation(final @NotNull Matrix[] input, final @NotNull Matrix[] kernels) {
         this.input = input;
         this.kernels = kernels;
         //  return Arrays.stream(kernels).map(matrix -> convolve(input, matrix)).toArray(Matrix[]::new);
-        final Matrix[] matrices = new Matrix[kernels.length];
+        final Matrix[] matrices = new Matrix[kernels.length * input.length];
+
         for (int i = 0; i < kernels.length; i++) {
-            matrices[i] = convolve(input, kernels[i]);
+            for (int j = 0; j < input.length; j++) {
+                matrices[i * input.length + j] = convolve(input[j], kernels[i]);
+            }
         }
         return matrices;
     }
 
+
     public Matrix[] backwardsPropagation(final Matrix[] delta) {
-        final Matrix[] newKernels = new Matrix[kernels.length];
-        final Matrix[] error = new Matrix[delta.length];
-        final Matrix[] newInput = new Matrix[error.length];
+        if (delta.length != input.length * kernels.length) {
+            System.err.printf("Matrix size mismatch. @ConvolutionPayer#backwardsPropagation Input was %d, expected %d",
+                    delta.length,
+                    input.length * kernels.length);
+            return null;
+        }
 
-        for (int o = 0; o < delta.length; o++) {
-            error[o] = new Matrix(input.getRows(), input.getCols());
-            newInput[o] = new Matrix(input.getRows(), input.getCols());
+        final Matrix[] deltaKernels = new Matrix[kernels.length];
+        final Matrix[] deltaInput = new Matrix[input.length];
 
-            for (int i = 0; i < kernels.length; i++) {
-                for (int j = 0; j < input.getRows(); j++) {
-                    for (int k = 0; k < input.getCols(); k++) {
+        for (int i = 0; i < input.length; i++) {
+            final Matrix input = this.input[i];
+            deltaInput[i] = new Matrix(input.getRows(), input.getCols());
+            //Iterate over the input matrix
+            for (int row = 0; row + kernels[0].getRows() < input.getRows(); row++) {
+                for (int column = 0; column + kernels[0].getCols() < input.getCols(); column++) {
+                    //Iterate over all the kernels
+                    for (int l = 0; l < kernels.length; l++) {
+                        final Matrix kernel = kernels[l];
+                        deltaKernels[l] = new Matrix(kernel.getRows(), kernel.getCols());
+                        //Iterate over the input regions
+                        final Matrix region = input.subMatrix(row, column, kernel.getRows(), kernel.getCols());
+                        //Get the delta for the region
+                        final double d = delta[i * kernels.length + l].get(row, column);
+                        //Multiply the delta with the region
+                        region.multiply(d);
+                        //Add the result to the deltaKernels
+                        deltaKernels[l].add(region);
 
-                        for (int l = 0; l < kernels[i].getRows(); l++) {
-                            for (int m = 0; m < kernels[i].getCols(); m++) {
-
+                        for (int j = 0; j < deltaKernels[l].getRows(); j++) {
+                            for (int k = 0; k < deltaKernels[l].getRows(); k++) {
+                                deltaInput[i].set(row + j, column + k, deltaKernels[l].get(j, k));
                             }
                         }
-
-
                     }
                 }
             }
-
         }
-
-
-        for (int i = 0; i < input.getRows(); i++) {
-            for (int j = 0; j < input.getCols(); j++) {
-                for (int k = 0; k < kernels.length; k++) {
-                    kernels[k] = new Matrix(kernels[k].getRows(), kernels[k].getCols());
-                    kernels[k].fillZeros();
-                    final Matrix subMatrix = input.subMatrix(i, j, kernels[k].getRows(), kernels[k].getCols());
-
-                }
-
-            }
+        for (int i = 0; i < kernels.length; i++) {
+            final Matrix m1 = MatrixUtil.transpose(deltaKernels[i]);
+            kernels[i] = MatrixUtil.addMatrices(kernels[i], m1.multiply(-Const.LEARNING_RATE));
         }
-        return newKernels;
+        return deltaInput;
     }
 }

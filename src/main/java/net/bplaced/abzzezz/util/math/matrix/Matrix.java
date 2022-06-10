@@ -1,11 +1,8 @@
 package net.bplaced.abzzezz.util.math.matrix;
 
-import net.bplaced.abzzezz.util.Const;
-import net.bplaced.abzzezz.util.math.MathUtil;
 import net.bplaced.abzzezz.util.math.vector.Vec;
 
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -51,10 +48,6 @@ public class Matrix {
         this.applyToElement(value -> RANDOM.nextGaussian());
     }
 
-    public void randomizeInteger() {
-        this.applyToElement(value -> (double) ThreadLocalRandom.current().nextInt(5));
-    }
-
     /**
      * Fills the matrix with all zeros
      */
@@ -76,8 +69,9 @@ public class Matrix {
      *
      * @param scaler number to add to each element
      */
-    public void add(final double scaler) {
+    public Matrix add(final double scaler) {
         this.applyToElement(value -> value + scaler);
+        return this;
     }
 
     /**
@@ -85,13 +79,14 @@ public class Matrix {
      *
      * @param matrix to add with
      */
-    public void add(final Matrix matrix) {
+    public Matrix add(final Matrix matrix) {
         if (matrix.rows != rows || matrix.cols != cols) {
-            System.err.println("Matrix mismatch");
-            return;
+            System.err.println("Matrix size mismatch. Cannot add matrices.");
+            return null;
             //throw new RuntimeException("Matrix mismatch");
         }
         this.applyToElement((row, col) -> data[row][col] + matrix.get(row, col));
+        return this;
     }
 
     /**
@@ -142,10 +137,27 @@ public class Matrix {
         double max = data[0][0];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                max = Math.max(max, get(i, j));
+                if (get(i, j) >= max) {
+                    max = get(i, j);
+                }
             }
         }
         return max;
+    }
+
+    public Optional<int[]> getMaxIndex() {
+        double max = -Double.MAX_VALUE;
+        final int[] index = new int[2];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (get(i, j) >= max) {
+                    max = get(i, j);
+                    index[0] = i;
+                    index[1] = j;
+                }
+            }
+        }
+        return Optional.of(index);
     }
 
     /**
@@ -153,12 +165,13 @@ public class Matrix {
      *
      * @param matrix another matrix whose elements are to be multiplied with
      */
-    public void multiply(final Matrix matrix) {
+    public Matrix multiply(final Matrix matrix) {
         if (matrix.rows != rows || matrix.cols != cols) {
             System.err.println("Matrix mismatch. Cannot multiply matrices");
-            return;
+            return null;
         }
         this.applyToElement((row, col) -> data[row][col] * matrix.get(row, col));
+        return this;
     }
 
     /**
@@ -166,24 +179,9 @@ public class Matrix {
      *
      * @param multiplier static multiplier for each element
      */
-    public void multiply(final double multiplier) {
+    public Matrix multiply(final double multiplier) {
         this.applyToElement(value -> value * multiplier);
-    }
-
-    public void sigmoid() {
-        this.applyToElement(MathUtil::sigmoid);
-    }
-
-    public void sigmoidDerivative() {
-        this.applyToElement(MathUtil::sigmoidDerivative);
-    }
-
-    public void relu() {
-        this.applyToElement(MathUtil::relu);
-    }
-
-    public void reluDerivative() {
-        this.applyToElement(MathUtil::reluDerivative);
+        return this;
     }
 
     /**
@@ -255,7 +253,7 @@ public class Matrix {
      * @return an array containing the row and column of the first occurrence of the value,
      * or null if the value is not found, wrapped in an optional
      */
-    public Optional<int[]> indexOfValue(final double value) {
+    public Optional<int[]> indexOf(final double value) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (get(i, j) == value) {
@@ -265,7 +263,6 @@ public class Matrix {
         }
         return Optional.empty();
     }
-
 
 
     /**

@@ -2,6 +2,7 @@ package net.bplaced.abzzezz.network;
 
 import net.bplaced.abzzezz.network.components.*;
 import net.bplaced.abzzezz.util.TrainData;
+import net.bplaced.abzzezz.util.image.ImageLoader;
 import net.bplaced.abzzezz.util.image.ImageUtil;
 import net.bplaced.abzzezz.util.math.MathUtil;
 import net.bplaced.abzzezz.util.math.matrix.Matrix;
@@ -15,8 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static net.bplaced.abzzezz.util.Const.*;
+import static net.bplaced.abzzezz.util.math.matrix.MatrixUtil.initKernels;
 
 public class CNN {
 
@@ -29,19 +32,26 @@ public class CNN {
 
     public CNN() {
         convolutionLayers.add(new ConvolutionLayer());
+        kernelList.add(initKernels(5, 9));
         poolingLayers.add(new PoolingLayer());
-        kernelList.add(initFilters(5, 9));
 
         convolutionLayers.add(new ConvolutionLayer());
+        kernelList.add(initKernels(10, 5));
         poolingLayers.add(new PoolingLayer());
-        kernelList.add(initFilters(10, 5));
-
+        /*
         convolutionLayers.add(new ConvolutionLayer());
-        poolingLayers.add(new PoolingLayer());
         kernelList.add(initFilters(5, 3));
+        poolingLayers.add(new PoolingLayer());
 
-        //A 64*64 sized image produces, after the given convolutions 16.000 Inputs for the NN
-        fullyConnectedLayers.add(new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, 16000, MathUtil.ActivationFunction.RELU));
+         */
+
+        /*
+        A 64*64 sized image produces, after the given convolutions 12.800 Inputs for the NN,
+        for the input image is 64*64, which is then downscaled to 16*16 for second convolution
+        the number of layers goes up, from 1 to 5 and then to 50.
+        In total this means: 16*16*50 = 12800 inputs for the NN.
+         */
+        fullyConnectedLayers.add(new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, 12_800, MathUtil.ActivationFunction.RELU));
 
         for (int j = 0; j < FULLY_CONNECTED_NETWORK_DEPTH; j++) {
             fullyConnectedLayers.add(new FullyConnectedLayer(FULLY_CONNECTED_NETWORK_WIDTH, FULLY_CONNECTED_NETWORK_WIDTH, MathUtil.ActivationFunction.RELU));
@@ -59,7 +69,7 @@ public class CNN {
         for (int i = 0; i < tests; i++) {
             System.out.println("Test: " + i);
             try {
-                final TrainData trainingData = getRandomTrainingData();
+                final TrainData trainingData = ImageLoader.getRandomTrainingData();
 
                 final Vec poolingOutputsVec = convolveInput(trainingData);
 
@@ -83,11 +93,11 @@ public class CNN {
                 e.printStackTrace();
             }
         }
-        final double accuracy = ((double) (tests - errorCount)) / tests;
+        final double accuracy = (tests - errorCount) / (double) tests;
         System.out.println("Accuracy: " + accuracy);
     }
 
-    private Vec convolveInput(final TrainData trainingData) throws IOException {
+    private Vec convolveInput(final TrainData trainingData) {
         Matrix[] poolingOutputs = new Matrix[]{trainingData.getInput()};
 
         for (int j = 0; j < convolutionLayers.size(); j++) {
@@ -95,14 +105,13 @@ public class CNN {
             final PoolingLayer poolingLayer = poolingLayers.get(j);
             final Matrix[] kernels = kernelList.get(j);
 
-            final List<Matrix> poolingOutputsTemp = new ArrayList<>();
+            //final Matrix[] poolTemp = new Matrix[kernels.length * poolingOutputs.length];
 
-            for (final Matrix output : poolingOutputs) {
-                final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(output, kernels);
-                final Matrix[] poolingOutput = poolingLayer.forwardPropagation(convolutionOutput);
-                poolingOutputsTemp.addAll(Arrays.asList(poolingOutput)); //Add to the current pooling
-            }
-            poolingOutputs = poolingOutputsTemp.toArray(Matrix[]::new);
+            //For every pooling layer, convolve the input with the kernels and pool the result
+            final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(poolingOutputs, kernels);
+            //Copy the current pooling output into the temp array from the current index (k*length)
+            //System.arraycopy(poolingOutput, 0, poolTemp, k * poolingOutput.length, poolingOutput.length);
+            poolingOutputs = poolingLayer.forwardPropagation(convolutionOutput);
         }
         //Create a vector the size off all matrices
         final int vectorSize = Arrays.stream(poolingOutputs)
@@ -129,7 +138,7 @@ public class CNN {
         for (int i = 0; i < iterations; i++) {
             System.out.println("Training iteration: " + i);
             try {
-                final TrainData trainingData = getRandomTrainingData();
+                final TrainData trainingData = ImageLoader.getRandomTrainingData();
                 Matrix[] poolingOutputs = new Matrix[]{trainingData.getInput()};
 
                 for (int j = 0; j < convolutionLayers.size(); j++) {
@@ -137,14 +146,13 @@ public class CNN {
                     final PoolingLayer poolingLayer = poolingLayers.get(j);
                     final Matrix[] kernels = kernelList.get(j);
 
-                    final List<Matrix> poolingOutputsTemp = new ArrayList<>();
+                    //final Matrix[] poolTemp = new Matrix[kernels.length * poolingOutputs.length];
 
-                    for (final Matrix output : poolingOutputs) {
-                        final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(output, kernels);
-                        final Matrix[] poolingOutput = poolingLayer.forwardPropagation(convolutionOutput);
-                        poolingOutputsTemp.addAll(Arrays.asList(poolingOutput)); //Add to the current pooling
-                    }
-                    poolingOutputs = poolingOutputsTemp.toArray(Matrix[]::new);
+                    //For every pooling layer, convolve the input with the kernels and pool the result
+                    final Matrix[] convolutionOutput = convolutionLayer.forwardPropagation(poolingOutputs, kernels);
+                    //Copy the current pooling output into the temp array from the current index (k*length)
+                    //System.arraycopy(poolingOutput, 0, poolTemp, k * poolingOutput.length, poolingOutput.length);
+                    poolingOutputs = poolingLayer.forwardPropagation(convolutionOutput);
                 }
                 //Create a vector the size off all matrices
                 final int vectorSize = Arrays.stream(poolingOutputs)
@@ -179,73 +187,30 @@ public class CNN {
                     error = fullyConnectedLayers.get(j).propagateBackwards(error);
                 }
 
+                Matrix[] errorMatrix = new Matrix[poolingOutputs.length];
+                for (int j = 0; j < errorMatrix.length; j++) {
+                    errorMatrix[j] = new Matrix(poolingOutputs[j].getRows(), poolingOutputs[j].getCols());
+                }
+                //Insert the error from the error vector into the error matrix
+                for (int j = 0; j < errorMatrix.length; j++) {
+                    final Matrix matrix = errorMatrix[j];
+                    for (int k = 0; k < matrix.getRows(); k++) {
+                        for (int l = 0; l < matrix.getCols(); l++) {
+                            matrix.set(k, l, error.get(j * matrix.getRows() + l));
+                        }
+                    }
+                }
+
                 for (int j = convolutionLayers.size() - 1; j >= 0; j--) {
-                    final Matrix[] kernels = kernelList.get(j);
                     final PoolingLayer poolingLayer = poolingLayers.get(j);
                     final ConvolutionLayer convolutionLayer = convolutionLayers.get(j);
 
-                    final Matrix[] errorMatrix = new Matrix[poolingOutputs.length];
-                    for (int k = 0; k < errorMatrix.length; k++) {
-                        errorMatrix[k] = new Matrix(poolingOutputs[k].getRows(), poolingOutputs[k].getCols());
-                    }
-
-                    //Insert the error from the error vector into the error matrix
-                    for (int k = 0; k < errorMatrix.length; k++) {
-                        final Matrix errorMatrixK = errorMatrix[k];
-                        for (int l = 0; l < errorMatrixK.getRows(); l++) {
-                            for (int m = 0; m < errorMatrixK.getCols(); m++) {
-                                errorMatrixK.set(l, m, error.get(k * errorMatrixK.getRows() + l));
-                            }
-                        }
-                    }
-
-                    final Matrix[] errorMatrixPooling = poolingLayer.backwardsPropagation(errorMatrix);
-                    final Matrix[] errorMatrixConvolution = convolutionLayer.backPropagation(errorMatrixPooling, kernels);
-
-                    for (int k = 0; k < errorMatrixConvolution.length; k++) {
-                        final Matrix errorMatrixK = errorMatrixConvolution[k];
-                        for (int l = 0; l < errorMatrixK.getRows(); l++) {
-                            for (int m = 0; m < errorMatrixK.getCols(); m++) {
-                                errorMatrix[k].set(l, m, errorMatrixK.get(l, m));
-                            }
-                        }
-                    }
+                    final Matrix[] poolingOutput = poolingLayer.backwardsPropagation(errorMatrix);
+                    errorMatrix = convolutionLayer.backwardsPropagation(poolingOutput);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    private TrainData getRandomTrainingData() throws IOException {
-        final File dogImages = new File("Images");
-        final File otherImages = new File("OtherImages");
-        final int rnd = ThreadLocalRandom.current().nextInt(2); //2;
-        //Dog directory
-
-        //TODO: Convert vectors into constants
-        if (rnd == 0) {
-            final File randomInnerDir = getRandomFileFromDirectory(dogImages);
-            return new TrainData(ImageUtil.getNormalizedMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), new Vec(1, 1));
-        } else { //OtherImages image directory
-            final File randomInnerDir = getRandomFileFromDirectory(otherImages);
-            return new TrainData(ImageUtil.getNormalizedMatrixFromImage(getRandomFileFromDirectory(randomInnerDir), IMAGE_SIZE, IMAGE_SIZE), new Vec(1, 0));
-        }
-    }
-
-    private File getRandomFileFromDirectory(final @NotNull File dir) {
-        assert dir.listFiles() == null : "Directory list files null";
-        final int rnd = ThreadLocalRandom.current().nextInt(dir.listFiles().length);
-        return Objects.requireNonNull(dir.listFiles())[rnd];
-    }
-
-    private Matrix @NotNull [] initFilters(final int filters, final int matrixSize) {
-        final Matrix[] matrices = new Matrix[filters];
-        for (int i = 0; i < matrices.length; i++) {
-            //nxn filter matrix
-            matrices[i] = new Matrix(matrixSize, matrixSize);
-            matrices[i].randomize();
-        }
-        return matrices;
     }
 }

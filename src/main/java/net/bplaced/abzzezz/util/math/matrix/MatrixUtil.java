@@ -1,6 +1,6 @@
 package net.bplaced.abzzezz.util.math.matrix;
 
-import java.util.Random;
+import org.jetbrains.annotations.NotNull;
 
 import static net.bplaced.abzzezz.util.Const.RANDOM;
 
@@ -51,6 +51,46 @@ public class MatrixUtil {
                     sum += matrix0.get(i, k) * matrix0.get(k, j);
                 }
                 temp.set(i, j, sum);
+            }
+        }
+        return temp;
+    }
+
+    /**
+     * Initializes an array of matrices with random values, provided a length and matrix size
+     *
+     * @param amount     the number of kernels to create
+     * @param matrixSize the size of each matrix
+     * @return an array of matrices with random values
+     */
+    public static Matrix @NotNull [] initKernels(final int amount, final int matrixSize) {
+        final Matrix[] matrices = new Matrix[amount];
+        for (int i = 0; i < matrices.length; i++) {
+            //nxn filter matrix
+            matrices[i] = new Matrix(matrixSize, matrixSize);
+            matrices[i].randomize();
+        }
+        return matrices;
+    }
+
+    /**
+     * Adds two matrices together, element-wise
+     *
+     * @param matrix0 the first matrix
+     * @param matrix1 the second matrix
+     * @return a new matrix created from an element-wise addition of the two matrices
+     */
+    public static Matrix addMatrices(final Matrix matrix0, final Matrix matrix1) {
+        if (matrix0.getRows() != matrix1.getRows() || matrix0.getCols() != matrix1.getCols()) {
+            System.err.println("Matrix size mismatch");
+            return null;
+        }
+
+        final Matrix temp = new Matrix(matrix0.getRows(), matrix0.getCols());
+        for (int i = 0; i < temp.getRows(); i++) {
+            for (int j = 0; j < temp.getCols(); j++) {
+                final double value = matrix0.get(i, j) + matrix1.get(i, j);
+                temp.set(i, j, value);
             }
         }
         return temp;
